@@ -13,6 +13,8 @@ async function generateReport(summary, format = 'json') {
       return generateMarkdownReport(summary);
     case 'html':
       return generateHtmlReport(summary);
+    case 'junit':
+      return generateJUnitReport(summary);
     default:
       throw new Error(`Unknown format: ${format}`);
   }
@@ -170,11 +172,55 @@ async function saveReport(report, outputPath, format) {
   return fullPath;
 }
 
+/**
+ * Generate JUnit XML format for CI compatibility
+ * Compatible with Jenkins, CircleCI, GitHub Actions
+ */
+function generateJUnitReport(summary) {
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += `<testsuite name="mobile-test-suite" tests="${summary.overall?.totalTests || 0}" failures="${summary.overall?.failed || 0}" errors="0" time="${(summary.duration || 0) / 1000}" timestamp="${summary.timestamp || new Date().toISOString()}">\n`;
+
+  // Add test results for each tier
+  Object.entries(summary.tiers || {}).forEach(([tier, result]) => {
+    const tests = result.tests || [];
+    tests.forEach((test) => {
+      const escapedName = escapeXml(`${test.name}`);
+      const escapedMessage = escapeXml(test.error || '');
+      const escapedLocation = escapeXml(test.location || '');
+
+      if (test.status === 'failed') {
+        xml += `  <testcase name="${escapedName}" classname="Tier${tier}" time="0">\n`;
+        xml += `    <failure message="${escapedMessage}" type="Error">\n`;
+        xml += `      ${escapedMessage}\n`;
+        if (escapedLocation) xml += `      Location: ${escapedLocation}\n`;
+        xml += `    </failure>\n`;
+        xml += `  </testcase>\n`;
+      } else {
+        xml += `  <testcase name="${escapedName}" classname="Tier${tier}" time="0"/>\n`;
+      }
+    });
+  });
+
+  xml += '</testsuite>\n';
+  return xml;
+}
+
+function escapeXml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 module.exports = {
   generateReport,
   generateJsonReport,
   generateMarkdownReport,
   generateHtmlReport,
+  generateJUnitReport,
   saveReport,
   formatDuration,
 };

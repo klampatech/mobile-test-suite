@@ -36,7 +36,7 @@ mobile-test-suite device reset <device-id>
 mobile-test-suite device health <device-id>
 
 # Generate reports
-mobile-test-suite report [--run=<id>] [--format=json|markdown|html] [--output=<path>]
+mobile-test-suite report [--run=<id>] [--format=json|markdown|html|junit] [--output=<path>]
 ```
 
 ### Environment Variables

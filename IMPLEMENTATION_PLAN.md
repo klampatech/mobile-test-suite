@@ -68,6 +68,11 @@
 - Flakiness detection simplified (no SQLite persistence)
 - Some device operations require additional system tools (ideviceinstaller, adb)
 
+### Recent fixes (v0.1.7):
+
+- Added JUnit XML report format for CI compatibility (`mobile-test-suite report --format=junit`)
+- Compatible with Jenkins, CircleCI, GitHub Actions
+
 ### Recent fixes (v0.1.6):
 
 - Added flakiness detection using JSON-based storage (src/services/flakiness-detector.js) - avoids native SQLite dependency issues
@@ -98,6 +103,7 @@ mobile-test-suite device list
 mobile-test-suite device pair --platform=ios
 
 # Generate reports
+mobile-test-suite report --format=junit --output=results.xml
 mobile-test-suite report --format=html --output=report.html
 ```
 

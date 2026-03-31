@@ -14,7 +14,7 @@ const { getResultsDir } = require('../config/loader');
 const reportCmd = new Command('report')
   .description('Generate test report from previous run')
   .option('-r, --run <id>', 'Run ID to report (default: last run)')
-  .option('-f, --format <format>', 'Output format (json|markdown|html)', 'json')
+  .option('-f, --format <format>', 'Output format (json|markdown|html|junit)', 'json')
   .option('-o, --output <path>', 'Write to file instead of stdout')
   .action(async (options) => {
     const spinner = ora('Loading test results...').start();
