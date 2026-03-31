@@ -63,6 +63,18 @@ Tier 1 (Jest, ~10-30s) → Tier 2 (RNTL, ~30-60s) → Tier 3 (Detox, ~2-5min)
 
 Fail-fast: Use `--stop-on-fail` to halt on Tier 1 failure.
 
+### Test Result Persistence
+
+After each test run, results are saved to `test-results/<run-id>/`:
+- `run.json` - Run metadata
+- `tier-1-results.json`, `tier-2-results.json`, `tier-3-results.json` - Tier results
+- `summary.json` - Aggregated results
+- `summary.md` - Human-readable report
+- `summary.html` - HTML report
+- `results.xml` - JUnit XML for CI
+
+Use `mobile-test-suite report --run=<run-id>` to generate reports from saved results.
+
 ### Exit Codes
 
 | Code | Meaning |
