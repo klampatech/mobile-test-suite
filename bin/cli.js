@@ -7,15 +7,12 @@
 
 const { Command } = require('commander');
 const chalk = require('chalk');
-const path = require('path');
-const fs = require('fs');
 
 const generateCmd = require('../src/cli/generate').generateCmd;
 const testCmd = require('../src/cli/test').testCmd;
 const deviceCmd = require('../src/cli/device').deviceCmd;
 const initCmd = require('../src/cli/init').initCmd;
 const reportCmd = require('../src/cli/report').reportCmd;
-const { loadConfig } = require('../src/config/loader');
 
 const program = new Command();
 
