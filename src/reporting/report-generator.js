@@ -4,7 +4,6 @@
  */
 
 const fs = require('fs');
-const path = require('path');
 
 async function generateReport(summary, format = 'json') {
   switch (format) {
@@ -43,7 +42,7 @@ function generateMarkdownReport(summary) {
 
   const failures = Object.entries(summary.tiers)
     .filter(([, r]) => r.failed > 0)
-    .flatMap(([tier, r]) => (r.tests || []).filter(t => t.status === 'failed'));
+    .flatMap(([, r]) => (r.tests || []).filter(t => t.status === 'failed'));
 
   if (failures.length > 0) {
     md += `## Failed Tests\n\n`;
@@ -137,7 +136,7 @@ function generateHtmlReport(summary) {
 function generateFailuresHtml(summary) {
   const failures = Object.entries(summary.tiers)
     .filter(([, r]) => r.failed > 0)
-    .flatMap(([tier, r]) => (r.tests || []).filter(t => t.status === 'failed'));
+    .flatMap(([, r]) => (r.tests || []).filter(t => t.status === 'failed'));
 
   if (failures.length === 0) return '';
 

@@ -9,7 +9,7 @@ const ora = require('ora');
 const fs = require('fs');
 const path = require('path');
 const { generateReport } = require('../reporting/report-generator');
-const { loadConfig, getResultsDir } = require('../config/loader');
+const { getResultsDir } = require('../config/loader');
 
 const reportCmd = new Command('report')
   .description('Generate test report from previous run')

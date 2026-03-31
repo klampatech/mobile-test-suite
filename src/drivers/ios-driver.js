@@ -84,7 +84,9 @@ class IosDriver {
   async uninstallApp(bundleId) {
     try {
       execSync(`ideviceinstaller -u ${this.udid} -U ${bundleId}`, { stdio: 'ignore' });
-    } catch (e) {}
+    } catch (e) {
+      // Uninstall failed, continuing
+    }
   }
 
   async isAppInstalled(bundleId) {
@@ -97,11 +99,11 @@ class IosDriver {
     }
   }
 
-  async launchApp(bundleId, launchArgs = {}) {
+  async launchApp(_bundleId, _launchArgs = {}) {
     throw new Error('Use Detox to launch apps on iOS');
   }
 
-  async terminateApp(bundleId) {}
+  async terminateApp(_bundleId) {}
 
   async resetDevice() {
     await this.uninstallApp('com.myapp');
@@ -125,7 +127,7 @@ class IosDriver {
     await this.uninstallApp(bundleId);
   }
 
-  async clearKeychain() {}
+  async clearKeychain(_bundleId) {}
 }
 
 module.exports = {

@@ -6,11 +6,10 @@
 const { Command } = require('commander');
 const chalk = require('chalk');
 const ora = require('ora');
-const path = require('path');
 const { runTier1 } = require('../runners/tier1');
 const { runTier2 } = require('../runners/tier2');
 const { runTier3 } = require('../runners/tier3');
-const { loadConfig, getResultsDir } = require('../config/loader');
+const { loadConfig } = require('../config/loader');
 
 const testCmd = new Command('test')
   .description('Run tests (all tiers or specific)')
@@ -28,7 +27,6 @@ const testCmd = new Command('test')
       const config = loadConfig();
       const tiers = options.tier === 'all' ? [1, 2, 3] : options.tier.split(',').map(Number);
       const runId = `run-${Date.now()}`;
-      const resultsDir = getResultsDir();
 
       spinner.text = `Running tier(s): ${tiers.join(', ')}`;
 

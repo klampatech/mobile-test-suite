@@ -9,14 +9,17 @@ const { toPromptContext } = require('../parser/spec-parser');
 
 let Anthropic;
 try {
+  // Attempt to load Anthropic SDK
   Anthropic = require('@anthropic-ai/sdk');
-} catch (e) {}
+} catch (e) {
+  // SDK not available, will use axios fallback
+}
 
 async function generateTests(spec, options) {
   const {
-    outputDir,
+    outputDir: _outputDir,
     tiers = [1, 2, 3],
-    force = false,
+    force: _force,
     model = 'claude-sonnet-4-20250514',
     apiKeyEnv = 'ANTHROPIC_API_KEY',
     provider = 'anthropic',

@@ -12,7 +12,7 @@ async function parseSpec(specPath) {
   }
 
   const content = fs.readFileSync(specPath, 'utf-8');
-  const specDir = path.dirname(specPath);
+  const _specDir = path.dirname(specPath);
   const specName = path.basename(specPath, '.md');
 
   return parseMarkdown(content, specName);
@@ -26,7 +26,6 @@ function parseMarkdown(content, specName) {
     metadata: {},
   };
 
-  let currentSection = null;
   let currentRequirement = null;
   let inEdgeCases = false;
   let inTestScenarios = false;

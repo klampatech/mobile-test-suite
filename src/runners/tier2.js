@@ -7,7 +7,7 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-async function runTier2(testPath, config) {
+async function runTier2(testPath, _config) {
   const startTime = Date.now();
 
   const tier2Path = path.join(testPath, 'tier2');
@@ -139,7 +139,7 @@ function parseErrorOutput(output, tier, duration) {
   };
 }
 
-async function runTier2File(filePath, config) {
+async function runTier2File(filePath, _config) {
   const startTime = Date.now();
 
   try {

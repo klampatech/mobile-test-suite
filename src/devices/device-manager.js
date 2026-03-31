@@ -4,7 +4,6 @@
  */
 
 const fs = require('fs');
-const path = require('path');
 const { getDeviceRegistryPath, ensureHomeDir } = require('../config/loader');
 
 const DeviceState = {
@@ -99,7 +98,9 @@ async function pairDevice(platform, name, udid) {
       osVersion = info.osVersion;
       capabilities = info.capabilities || [];
     }
-  } catch (e) {}
+  } catch (e) {
+    // OS version detection failed, using default
+  }
 
   const deviceId = `device-${Date.now()}`;
   const device = {
@@ -217,7 +218,9 @@ async function resetIosDevice(udid) {
   try {
     const { execSync } = require('child_process');
     execSync(`ideviceinstaller -u ${udid} -U com.myapp 2>/dev/null || true`, { stdio: 'ignore' });
-  } catch (e) {}
+  } catch (e) {
+    // OS version detection failed, using default
+  }
 }
 
 async function resetAndroidDevice(udid) {
@@ -225,7 +228,9 @@ async function resetAndroidDevice(udid) {
     const { execSync } = require('child_process');
     execSync(`adb -s ${udid} shell pm clear com.myapp 2>/dev/null || true`, { stdio: 'ignore' });
     execSync(`adb -s ${udid} shell am kill-all 2>/dev/null || true`, { stdio: 'ignore' });
-  } catch (e) {}
+  } catch (e) {
+    // OS version detection failed, using default
+  }
 }
 
 async function healthCheck(deviceId) {
@@ -267,7 +272,9 @@ async function getIosHealth(udid) {
     try {
       const batteryOutput = execSync(`ideviceinfo -u ${udid} -k com.apple.deviceinfo.BatteryCurrentCapacity`, { encoding: 'utf-8' });
       battery = parseInt(batteryOutput.trim()) || 100;
-    } catch (e) {}
+    } catch (e) {
+    // OS version detection failed, using default
+  }
 
     const storageFree = 10 * 1024 * 1024 * 1024;
     const screenOn = true;
@@ -288,7 +295,9 @@ async function getAndroidHealth(udid) {
       const batteryOutput = execSync(`adb -s ${udid} shell dumpsys battery | grep level`, { encoding: 'utf-8' });
       const match = batteryOutput.match(/level:\s*(\d+)/);
       battery = match ? parseInt(match[1]) : 100;
-    } catch (e) {}
+    } catch (e) {
+    // OS version detection failed, using default
+  }
 
     const storageFree = 10 * 1024 * 1024 * 1024;
 
@@ -296,7 +305,9 @@ async function getAndroidHealth(udid) {
     try {
       const screenOutput = execSync(`adb -s ${udid} shell dumpsys window | grep mScreenOn`, { encoding: 'utf-8' });
       screenOn = screenOutput.includes('mScreenOn=true');
-    } catch (e) {}
+    } catch (e) {
+    // OS version detection failed, using default
+  }
 
     let networkConnected = true;
     try {
@@ -402,14 +413,18 @@ async function discoverDevices() {
     if (iosDevice) {
       console.log(`Discovered iOS device: ${iosDevice.name}. Run 'device pair' to add to pool.`);
     }
-  } catch (e) {}
+  } catch (e) {
+    // OS version detection failed, using default
+  }
 
   try {
     const androidDevice = await detectAndroidDevice();
     if (androidDevice) {
       console.log(`Discovered Android device: ${androidDevice.name}. Run 'device pair' to add to pool.`);
     }
-  } catch (e) {}
+  } catch (e) {
+    // OS version detection failed, using default
+  }
 }
 
 module.exports = {

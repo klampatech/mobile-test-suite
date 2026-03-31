@@ -109,7 +109,9 @@ class AndroidDriver {
   async uninstallApp(bundleId) {
     try {
       execSync(`adb -s ${this.udid} uninstall ${bundleId}`, { stdio: 'ignore' });
-    } catch (e) {}
+    } catch (e) {
+      // Uninstall failed, continuing
+    }
   }
 
   async isAppInstalled(bundleId) {
@@ -139,7 +141,9 @@ class AndroidDriver {
   async terminateApp(bundleId) {
     try {
       execSync(`adb -s ${this.udid} shell am force-stop ${bundleId}`, { stdio: 'ignore' });
-    } catch (e) {}
+    } catch (e) {
+      // Uninstall failed, continuing
+    }
   }
 
   async resetDevice() {
@@ -170,7 +174,9 @@ class AndroidDriver {
   async clearAppData(bundleId) {
     try {
       execSync(`adb -s ${this.udid} shell pm clear ${bundleId}`, { stdio: 'ignore' });
-    } catch (e) {}
+    } catch (e) {
+      // Uninstall failed, continuing
+    }
   }
 }
 

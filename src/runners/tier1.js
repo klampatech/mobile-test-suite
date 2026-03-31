@@ -142,7 +142,7 @@ function parseErrorOutput(output, tier, duration) {
   };
 }
 
-async function runTier1File(filePath, config) {
+async function runTier1File(filePath, _config) {
   const startTime = Date.now();
 
   try {

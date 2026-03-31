@@ -7,7 +7,6 @@ const { Command } = require('commander');
 const chalk = require('chalk');
 const ora = require('ora');
 const deviceManager = require('../devices/device-manager');
-const { loadConfig } = require('../config/loader');
 
 const deviceCmd = new Command('device')
   .description('Manage real devices')
@@ -17,7 +16,6 @@ const deviceCmd = new Command('device')
       .option('-p, --platform <platform>', 'Filter by platform (ios|android|all)', 'all')
       .action(async (options) => {
         try {
-          const config = loadConfig();
           const devices = await deviceManager.listDevices(options.platform);
 
           if (devices.length === 0) {
@@ -79,7 +77,7 @@ const deviceCmd = new Command('device')
     new Command('health')
       .description('Check device health')
       .argument('<device-id>', 'Device ID to check')
-      .action(async (deviceId, options) => {
+      .action(async (deviceId, _options) => {
         const spinner = ora(`Checking health...`).start();
         try {
           const health = await deviceManager.healthCheck(deviceId);

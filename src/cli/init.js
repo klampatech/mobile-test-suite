@@ -8,7 +8,6 @@ const chalk = require('chalk');
 const ora = require('ora');
 const fs = require('fs');
 const path = require('path');
-const { loadConfig } = require('../config/loader');
 
 const initCmd = new Command('init')
   .description('Initialize test suite in a React Native project')

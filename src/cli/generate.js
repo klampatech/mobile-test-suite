@@ -9,7 +9,7 @@ const ora = require('ora');
 const path = require('path');
 const { parseSpec } = require('../parser/spec-parser');
 const { generateTests } = require('../generator/test-generator');
-const { loadConfig, getResultsDir } = require('../config/loader');
+const { loadConfig } = require('../config/loader');
 
 const generateCmd = new Command('generate')
   .description('Generate tests from specification files')
@@ -46,7 +46,6 @@ const generateCmd = new Command('generate')
       });
 
       const runId = `gen-${Date.now()}`;
-      const resultsDir = getResultsDir();
 
       console.log(chalk.cyan(`\nTests written to: ${path.resolve(options.output)}`));
       console.log(chalk.cyan(`Run ID: ${runId}`));
