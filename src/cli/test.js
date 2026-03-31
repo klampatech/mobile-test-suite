@@ -10,6 +10,7 @@ const { runTier1 } = require('../runners/tier1');
 const { runTier2 } = require('../runners/tier2');
 const { runTier3 } = require('../runners/tier3');
 const { loadConfig } = require('../config/loader');
+const { sendNotifications } = require('../services/notification-service');
 
 const testCmd = new Command('test')
   .description('Run tests (all tiers or specific)')
@@ -91,6 +92,26 @@ const testCmd = new Command('test')
         const status = result.failed === 0 ? chalk.green('PASS') : chalk.red('FAIL');
         console.log(`Tier ${tier}: ${status} (${result.passed || 0} passed, ${result.failed || 0} failed)`);
       });
+
+      // Send notifications if configured (only on failure)
+      const summary = {
+        runId,
+        ...results,
+        overall: {
+          status: results.overall,
+          passed: Object.values(results.tiers).reduce((sum, r) => sum + (r.passed || 0), 0),
+          failed: Object.values(results.tiers).reduce((sum, r) => sum + (r.failed || 0), 0),
+          totalTests: Object.values(results.tiers).reduce((sum, r) => sum + (r.total || 0), 0),
+        },
+      };
+
+      if (results.overall === 'failed' && config.notifications?.onFailure) {
+        try {
+          await sendNotifications(config, summary);
+        } catch (notifError) {
+          console.warn(chalk.yellow(`Notification error: ${notifError.message}`));
+        }
+      }
 
       const exitCode = results.overall === 'passed' ? 0 : 1;
       process.exit(exitCode);
