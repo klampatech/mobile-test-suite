@@ -6,12 +6,134 @@
 const { Command } = require('commander');
 const chalk = require('chalk');
 const ora = require('ora').default;
+const path = require('path');
+const fs = require('fs');
 const { runTier1 } = require('../runners/tier1');
 const { runTier2 } = require('../runners/tier2');
 const { runTier3 } = require('../runners/tier3');
-const { loadConfig } = require('../config/loader');
+const { loadConfig, getResultsDir } = require('../config/loader');
 const { sendNotifications } = require('../services/notification-service');
 const { recordTestRun, exportFlakinessData, initFlakinessDb } = require('../services/flakiness-detector');
+
+function saveRunResults(runId, results, config) {
+  const resultsDir = getResultsDir();
+  const runDir = path.join(resultsDir, runId);
+
+  // Create run directory
+  if (!fs.existsSync(runDir)) {
+    fs.mkdirSync(runDir, { recursive: true });
+  }
+
+  // Write run metadata
+  const runMetadata = {
+    runId,
+    timestamp: results.timestamp,
+    duration: results.duration,
+    trigger: 'cli',
+    config: {
+      tiers: Object.keys(results.tiers),
+      stopOnFail: config.stopOnFail,
+    },
+    environment: {
+      platform: config.devices?.defaultPlatform || 'ios',
+      nodeVersion: process.version,
+    },
+  };
+  fs.writeFileSync(path.join(runDir, 'run.json'), JSON.stringify(runMetadata, null, 2));
+
+  // Write tier results and create summary
+  const summary = {
+    runId,
+    timestamp: results.timestamp,
+    duration: results.duration,
+    overall: {
+      status: results.overall,
+      passedTiers: Object.values(results.tiers).filter(t => t.failed === 0).length,
+      failedTiers: Object.values(results.tiers).filter(t => t.failed > 0).length,
+      totalTests: Object.values(results.tiers).reduce((sum, r) => sum + (r.passed || 0) + (r.failed || 0), 0),
+      passed: Object.values(results.tiers).reduce((sum, r) => sum + (r.passed || 0), 0),
+      failed: Object.values(results.tiers).reduce((sum, r) => sum + (r.failed || 0), 0),
+    },
+    tiers: {},
+  };
+
+  Object.entries(results.tiers).forEach(([tier, result]) => {
+    // Copy tier results to run directory
+    const tierResultFile = path.join(process.cwd(), 'test-results', `tier${tier}-results.json`);
+    if (fs.existsSync(tierResultFile)) {
+      const tierData = JSON.parse(fs.readFileSync(tierResultFile, 'utf-8'));
+      fs.writeFileSync(path.join(runDir, `tier-${tier}-results.json`), JSON.stringify(tierData, null, 2));
+
+      // Build summary tier data
+      summary.tiers[tier] = {
+        status: result.failed === 0 ? 'passed' : 'failed',
+        tests: result.total || 0,
+        passed: result.passed || 0,
+        failed: result.failed || 0,
+        duration: result.duration || 0,
+        runner: result.runner || (tier === 3 ? 'detox' : 'jest'),
+      };
+    }
+  });
+
+  // Write summary.json
+  fs.writeFileSync(path.join(runDir, 'summary.json'), JSON.stringify(summary, null, 2));
+
+  // Write human-readable summary.md
+  const summaryMd = generateSummaryMd(runId, results, summary);
+  fs.writeFileSync(path.join(runDir, 'summary.md'), summaryMd);
+
+  // Generate HTML report
+  const { generateHtmlReport, generateJUnitReport } = require('../reporting/report-generator');
+  fs.writeFileSync(path.join(runDir, 'summary.html'), generateHtmlReport(summary));
+  fs.writeFileSync(path.join(runDir, 'results.xml'), generateJUnitReport(summary));
+
+  return runDir;
+}
+
+function generateSummaryMd(runId, results, summary) {
+  let md = `# Test Run Summary\n\n`;
+  md += `**Run ID:** ${runId}\n`;
+  md += `**Status:** ${results.overall === 'passed' ? 'PASSED' : 'FAILED'}\n`;
+  md += `**Duration:** ${formatDuration(results.duration)}\n`;
+  md += `**Timestamp:** ${results.timestamp}\n\n`;
+
+  md += `## Results by Tier\n\n`;
+  md += `| Tier | Runner | Tests | Passed | Failed | Duration | Status |\n`;
+  md += `|------|--------|-------|--------|--------|----------|--------|\n`;
+
+  Object.entries(results.tiers).forEach(([tier, result]) => {
+    const status = result.failed === 0 ? 'PASSED' : 'FAILED';
+    const runner = result.runner || (tier === '3' ? 'detox' : 'jest');
+    md += `| ${tier} | ${runner} | ${(result.passed || 0) + (result.failed || 0)} | ${result.passed || 0} | ${result.failed || 0} | ${formatDuration(result.duration || 0)} | ${status} |\n`;
+  });
+
+  md += `\n`;
+
+  const failures = Object.entries(results.tiers)
+    .filter(([, r]) => r.failed > 0)
+    .flatMap(([, r]) => (r.tests || []).filter(t => t.status === 'failed'));
+
+  if (failures.length > 0) {
+    md += `## Failed Tests\n\n`;
+    failures.forEach((test) => {
+      md += `### ${test.name}\n`;
+      md += `- Location: \`${test.location || 'unknown'}\`\n`;
+      if (test.error) md += `- Error: ${test.error}\n`;
+      md += '\n';
+    });
+  }
+
+  return md;
+}
+
+function formatDuration(ms) {
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  return `${minutes}m ${seconds}s`;
+}
 
 const testCmd = new Command('test')
   .description('Run tests (all tiers or specific)')
@@ -144,6 +266,14 @@ const testCmd = new Command('test')
         } catch (notifError) {
           console.warn(chalk.yellow(`Notification error: ${notifError.message}`));
         }
+      }
+
+      // Save run results to test-results/<run-id>/ directory
+      try {
+        const runDir = saveRunResults(runId, results, config);
+        console.log(chalk.cyan(`Results saved to: ${runDir}`));
+      } catch (saveError) {
+        console.warn(chalk.yellow(`Failed to save results: ${saveError.message}`));
       }
 
       const exitCode = results.overall === 'passed' ? 0 : 1;

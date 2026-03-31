@@ -49,6 +49,15 @@
 - [x] **6.4** Implement notification hooks (Slack, email) on failure - implemented in src/services/notification-service.js
 - [x] **4.2** Flakiness detection (JSON history) - implemented in src/services/flakiness-detector.js
 
+### Phase 7: Test Result Persistence
+
+- [x] **7.1** Save test results to test-results/<run-id>/ directory (implemented in test.js)
+- [x] **7.2** Create run.json with run metadata (implemented in test.js)
+- [x] **7.3** Create summary.json with aggregated results (implemented in test.js)
+- [x] **7.4** Create summary.md human-readable report (implemented in test.js)
+- [x] **7.5** Generate HTML report in run directory (implemented in test.js)
+- [x] **7.6** Generate JUnit XML in run directory (implemented in test.js)
+
 ---
 
 ## Implementation Notes
