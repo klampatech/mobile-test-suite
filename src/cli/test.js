@@ -91,7 +91,7 @@ function saveRunResults(runId, results, config) {
   return runDir;
 }
 
-function generateSummaryMd(runId, results, summary) {
+function generateSummaryMd(runId, results, _summary) {
   let md = `# Test Run Summary\n\n`;
   md += `**Run ID:** ${runId}\n`;
   md += `**Status:** ${results.overall === 'passed' ? 'PASSED' : 'FAILED'}\n`;
