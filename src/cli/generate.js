@@ -5,7 +5,7 @@
 
 const { Command } = require('commander');
 const chalk = require('chalk');
-const ora = require('ora');
+const ora = require('ora').default;
 const path = require('path');
 const { parseSpec } = require('../parser/spec-parser');
 const { generateTests } = require('../generator/test-generator');

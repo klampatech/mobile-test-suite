@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .js",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "tsc"
   },

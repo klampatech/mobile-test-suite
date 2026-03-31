@@ -5,7 +5,7 @@
 
 const { Command } = require('commander');
 const chalk = require('chalk');
-const ora = require('ora');
+const ora = require('ora').default;
 const { runTier1 } = require('../runners/tier1');
 const { runTier2 } = require('../runners/tier2');
 const { runTier3 } = require('../runners/tier3');

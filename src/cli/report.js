@@ -5,7 +5,7 @@
 
 const { Command } = require('commander');
 const chalk = require('chalk');
-const ora = require('ora');
+const ora = require('ora').default;
 const fs = require('fs');
 const path = require('path');
 const { generateReport } = require('../reporting/report-generator');

@@ -1,6 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
-  roots: ['<rootDir>/src', '<rootDir>/dist'],
+  roots: ['<rootDir>/src', '<rootDir>/dist', '<rootDir>/tests'],
   testMatch: ['**/*.test.js', '**/*.test.ts'],
   transform: {
     '^.+\\.jsx?$': ['babel-jest', { presets: ['@babel/preset-env'] }],
