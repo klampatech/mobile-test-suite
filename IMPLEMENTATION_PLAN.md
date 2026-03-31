@@ -23,6 +23,7 @@
   - 3.4 Device pairing (mobile-test-suite device pair)
   - 3.5 Device reset/cleanup (mobile-test-suite device reset)
   - 3.6 Device health checks (mobile-test-suite device health)
+  - 3.7 Device discover CLI command (mobile-test-suite device discover)
 
 - **Phase 4: Reporting & Analysis** - Implemented
   - 4.1 Test result aggregation (src/reporting/report-generator.js)
@@ -57,6 +58,7 @@
 - [x] **7.4** Create summary.md human-readable report (implemented in test.js)
 - [x] **7.5** Generate HTML report in run directory (implemented in test.js)
 - [x] **7.6** Generate JUnit XML in run directory (implemented in test.js)
+- [x] **7.7** Generate flaky-tests.json artifact (implemented in test.js)
 
 ---
 
@@ -76,6 +78,13 @@
 - better-sqlite3 removed due to native compilation issues on Node 25
 - Flakiness detection simplified (no SQLite persistence)
 - Some device operations require additional system tools (ideviceinstaller, adb)
+
+### Recent fixes (v0.1.8):
+
+- Fixed test generation - generated tests are now written to disk (src/cli/generate.js calls writeTests)
+- Added device discover CLI command (`mobile-test-suite device discover`)
+- Added flaky-tests.json artifact generation in test-results/<run-id>/ directory
+- Improved test file naming - generated tests now use feature-name-logic.test.ts pattern instead of generic generated-test.test.ts
 
 ### Recent fixes (v0.1.7):
 

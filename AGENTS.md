@@ -32,6 +32,7 @@ mobile-test-suite test [path] [--tier=1|2|3|all] [--device=<id>] [--stop-on-fail
 # Device management
 mobile-test-suite device list
 mobile-test-suite device pair [--name=<label>] [--platform=ios|android]
+mobile-test-suite device discover [--platform=ios|android|all]
 mobile-test-suite device reset <device-id>
 mobile-test-suite device health <device-id>
 

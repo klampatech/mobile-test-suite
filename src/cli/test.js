@@ -13,7 +13,7 @@ const { runTier2 } = require('../runners/tier2');
 const { runTier3 } = require('../runners/tier3');
 const { loadConfig, getResultsDir } = require('../config/loader');
 const { sendNotifications } = require('../services/notification-service');
-const { recordTestRun, exportFlakinessData, initFlakinessDb } = require('../services/flakiness-detector');
+const { recordTestRun, exportFlakinessData, initFlakinessDb, getAllTestHistory } = require('../services/flakiness-detector');
 
 function saveRunResults(runId, results, config) {
   const resultsDir = getResultsDir();
@@ -88,7 +88,53 @@ function saveRunResults(runId, results, config) {
   fs.writeFileSync(path.join(runDir, 'summary.html'), generateHtmlReport(summary));
   fs.writeFileSync(path.join(runDir, 'results.xml'), generateJUnitReport(summary));
 
+  // Generate flaky-tests.json report
+  try {
+    const flakyReport = generateFlakyTestsReport(runId);
+    fs.writeFileSync(path.join(runDir, 'flaky-tests.json'), JSON.stringify(flakyReport, null, 2));
+  } catch (e) {
+    // Flakiness report is optional
+  }
+
   return runDir;
+}
+
+function generateFlakyTestsReport(runId) {
+  const allHistory = getAllTestHistory();
+  const flakyTests = [];
+
+  for (const [testId, history] of Object.entries(allHistory || {})) {
+    const runs = history.runs || [];
+    if (runs.length < 3) continue;
+
+    const totalRuns = runs.length;
+    const passAfterFail = runs.filter(r => r.retried && r.status === 'passed').length;
+
+    // Flakiness = tests that failed then passed on retry
+    const flakinessRate = totalRuns > 0 ? passAfterFail / totalRuns : 0;
+
+    if (flakinessRate >= 0.2) {
+      flakyTests.push({
+        testId,
+        name: testId,
+        flakinessRate: Math.round(flakinessRate * 100) / 100,
+        sampleSize: totalRuns,
+        confidence: totalRuns >= 10 ? 'high' : 'medium',
+        recentRuns: runs.slice(-5),
+        status: 'monitoring',
+      });
+    }
+  }
+
+  return {
+    runId,
+    analyzedAt: new Date().toISOString(),
+    totalTestsAnalyzed: Object.keys(allHistory || {}).length,
+    flakyTestsDetected: flakyTests.length,
+    quarantinedTests: 0,
+    flakyTests,
+    quarantineRecommendations: [],
+  };
 }
 
 function generateSummaryMd(runId, results, _summary) {

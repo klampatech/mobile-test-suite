@@ -8,7 +8,7 @@ const chalk = require('chalk');
 const ora = require('ora').default;
 const path = require('path');
 const { parseSpec } = require('../parser/spec-parser');
-const { generateTests } = require('../generator/test-generator');
+const { generateTests, writeTests } = require('../generator/test-generator');
 const { loadConfig } = require('../config/loader');
 
 const generateCmd = new Command('generate')
@@ -39,6 +39,15 @@ const generateCmd = new Command('generate')
         apiKeyEnv: config.llm.apiKeyEnv,
         provider: config.llm.provider,
       });
+
+      // Write generated tests to output directory
+      const spinner2 = ora('Writing test files...').start();
+      try {
+        await writeTests(results, options.output);
+        spinner2.succeed(`Wrote ${results.filter(r => !r.error).length} test files`);
+      } catch (writeError) {
+        spinner2.fail(writeError.message);
+      }
 
       console.log(chalk.green(`\n✓ Generated ${results.length} test files`));
       results.forEach((result) => {

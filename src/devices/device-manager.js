@@ -407,24 +407,83 @@ async function releaseDevice(deviceId, result = 'passed') {
   return device;
 }
 
-async function discoverDevices() {
-  try {
-    const iosDevice = await detectIosDevice();
-    if (iosDevice) {
-      console.log(`Discovered iOS device: ${iosDevice.name}. Run 'device pair' to add to pool.`);
+async function discoverDevices(platform = 'all') {
+  const discovered = [];
+
+  // Discover iOS devices
+  if (platform === 'all' || platform === 'ios') {
+    try {
+      const { execSync } = require('child_process');
+      const output = execSync('idevice_id -l', { encoding: 'utf-8' });
+      const udids = output.trim().split('\n').filter((u) => u);
+
+      for (const udid of udids) {
+        try {
+          const nameOutput = execSync(`ideviceinfo -u ${udid} -k DeviceName`, { encoding: 'utf-8' });
+          const versionOutput = execSync(`ideviceinfo -u ${udid} -k SoftwareVersion`, { encoding: 'utf-8' });
+
+          discovered.push({
+            id: `ios-${udid.substring(0, 8)}`,
+            platform: 'ios',
+            name: nameOutput.trim() || 'iOS Device',
+            udid,
+            osVersion: versionOutput.trim() || 'unknown',
+            status: 'discovered',
+          });
+        } catch (e) {
+          discovered.push({
+            id: `ios-${udid.substring(0, 8)}`,
+            platform: 'ios',
+            name: 'iOS Device',
+            udid,
+            osVersion: 'unknown',
+            status: 'discovered',
+          });
+        }
+      }
+    } catch (e) {
+      // No iOS devices found or idevice_id not available
     }
-  } catch (e) {
-    // OS version detection failed, using default
   }
 
-  try {
-    const androidDevice = await detectAndroidDevice();
-    if (androidDevice) {
-      console.log(`Discovered Android device: ${androidDevice.name}. Run 'device pair' to add to pool.`);
+  // Discover Android devices
+  if (platform === 'all' || platform === 'android') {
+    try {
+      const { execSync } = require('child_process');
+      const output = execSync('adb devices', { encoding: 'utf-8' });
+      const lines = output.split('\n').filter((l) => l.includes('\tdevice'));
+
+      for (const line of lines) {
+        const udid = line.split('\t')[0];
+        try {
+          const nameOutput = execSync(`adb -s ${udid} shell getprop ro.product.model`, { encoding: 'utf-8' });
+          const versionOutput = execSync(`adb -s ${udid} shell getprop ro.build.version.release`, { encoding: 'utf-8' });
+
+          discovered.push({
+            id: `android-${udid.substring(0, 8)}`,
+            platform: 'android',
+            name: nameOutput.trim() || 'Android Device',
+            udid,
+            osVersion: versionOutput.trim() || 'unknown',
+            status: 'discovered',
+          });
+        } catch (e) {
+          discovered.push({
+            id: `android-${udid.substring(0, 8)}`,
+            platform: 'android',
+            name: 'Android Device',
+            udid,
+            osVersion: 'unknown',
+            status: 'discovered',
+          });
+        }
+      }
+    } catch (e) {
+      // No Android devices found or adb not available
     }
-  } catch (e) {
-    // OS version detection failed, using default
   }
+
+  return discovered;
 }
 
 module.exports = {

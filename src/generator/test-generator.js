@@ -33,6 +33,11 @@ async function generateTests(spec, options) {
   const results = [];
   const context = toPromptContext(spec);
 
+  // Generate a sanitized feature name for file naming
+  const featureName = spec.feature
+    ? spec.feature.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+    : 'feature';
+
   for (const tier of tiers) {
     try {
       const tierResult = await generateTierTests(spec, tier, {
@@ -40,6 +45,7 @@ async function generateTests(spec, options) {
         model,
         provider,
         context,
+        featureName,
       });
 
       results.push(tierResult);
@@ -58,7 +64,7 @@ async function generateTests(spec, options) {
 }
 
 async function generateTierTests(spec, tier, options) {
-  const { apiKey, model, provider, context } = options;
+  const { apiKey, model, provider, context, featureName } = options;
 
   const systemPrompt = getSystemPrompt(tier);
   const userPrompt = getUserPrompt(spec, tier);
@@ -71,7 +77,7 @@ async function generateTierTests(spec, tier, options) {
     generatedCode = await generateWithAxios(apiKey, model, systemPrompt, userPrompt, context);
   }
 
-  const parsed = parseGeneratedCode(generatedCode, tier);
+  const parsed = parseGeneratedCode(generatedCode, tier, featureName);
 
   return {
     tier,
@@ -175,18 +181,28 @@ IMPORTANT:
 Generate the test code now.`;
 }
 
-function parseGeneratedCode(response, tier) {
+function parseGeneratedCode(response, tier, featureName = 'test') {
   const codeBlockMatch = response.match(/```(?:typescript|ts|javascript)?\s*\n([\s\S]*?)```/);
   const code = codeBlockMatch ? codeBlockMatch[1].trim() : response.trim();
 
   const extension = tier === 3 ? 'spec.ts' : tier === 2 ? 'test.tsx' : 'test.ts';
   const testCount = (code.match(/\btest\(|it\(/g) || []).length;
 
+  // Determine file name based on tier
+  let fileName;
+  if (tier === 1) {
+    fileName = `${featureName}-logic.test.ts`;
+  } else if (tier === 2) {
+    fileName = `${featureName}-component.test.tsx`;
+  } else {
+    fileName = `${featureName}-e2e.spec.ts`;
+  }
+
   return {
     code,
     extension,
     testCount,
-    fileName: `generated-test.${extension}`,
+    fileName,
   };
 }
 

@@ -11,6 +11,39 @@ const deviceManager = require('../devices/device-manager');
 const deviceCmd = new Command('device')
   .description('Manage real devices')
   .addCommand(
+    new Command('discover')
+      .description('Discover and list connected devices')
+      .option('-p, --platform <platform>', 'Filter by platform (ios|android|all)', 'all')
+      .action(async (options) => {
+        const spinner = ora('Discovering devices...').start();
+        try {
+          const devices = await deviceManager.discoverDevices(options.platform);
+          spinner.succeed(`Found ${devices.length} device(s)`);
+
+          if (devices.length === 0) {
+            console.log(chalk.yellow('No devices connected'));
+            return;
+          }
+
+          console.log(chalk.bold('\nID         PLATFORM  STATUS     NAME           OS'));
+          console.log(chalk.gray('─'.repeat(70)));
+
+          devices.forEach((device) => {
+            const statusColor = device.status === 'available' ? chalk.green : device.status === 'paired' ? chalk.yellow : chalk.gray;
+            console.log(
+              `${device.id.padEnd(10)} ${device.platform.padEnd(8)} ${statusColor(device.status.padEnd(10))} ${device.name.padEnd(12)} ${device.osVersion || 'unknown'}`
+            );
+          });
+
+          console.log(chalk.gray(`\nTotal: ${devices.length} device(s) found`));
+          console.log(chalk.cyan('Run "device pair" to add discovered devices to the pool'));
+        } catch (error) {
+          spinner.fail(error.message);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
     new Command('list')
       .description('List available devices')
       .option('-p, --platform <platform>', 'Filter by platform (ios|android|all)', 'all')
