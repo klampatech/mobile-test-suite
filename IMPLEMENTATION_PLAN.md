@@ -84,9 +84,9 @@
 - Flakiness detection simplified (no SQLite persistence)
 - Some device operations require additional system tools (ideviceinstaller, adb)
 
-### Recent fixes (v0.2.8):
+### Recent fixes (v0.2.9):
 
-- Version bump to align with git tags (v0.2.7)
+- Version bump to v0.2.9
 - Verified all 41 unit tests pass
 - Lint and syntax checks clean
 - Device management fully implemented per SPEC_device.md
