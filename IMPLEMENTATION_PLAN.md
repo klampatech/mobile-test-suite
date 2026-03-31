@@ -3,10 +3,12 @@
 ## Completed
 
 <!-- Completed tasks (can be periodically cleaned out) -->
+- Nothing implemented yet - this is a new project
 
 ## In Progress
 
 <!-- Tasks currently being worked on -->
+- This plan - initial analysis complete
 
 ## Backlog
 
@@ -62,6 +64,62 @@
 
 ---
 
+## Specification Analysis
+
+### What the specs define:
+
+1. **SPEC.md** - Core CLI interface
+   - Commands: generate, test, device, init, report
+   - Spec format: Gherkin-style Given/When/Then
+   - Exit codes: 0-4 for different failure modes
+
+2. **SPEC_tiers.md** - Three-tier test execution
+   - Tier 1: Jest unit/logic tests (~10-30s)
+   - Tier 2: RNTL component tests (~30-60s)
+   - Tier 3: Detox E2E on real devices (~2-5min)
+
+3. **SPEC_generation.md** - LLM-powered test generation
+   - Parser extracts requirements from markdown
+   - LLM generates tests in all three tiers
+   - Validation: TypeScript compilation, ESLint
+
+4. **SPEC_device.md** - Real device management
+   - Device states: unknown → paired → available → in-use → passed/failed
+   - iOS: idevice_id, ideviceinstaller
+   - Android: adb
+   - Health checks: battery, storage, screen, network
+
+5. **SPEC_reporting.md** - Results & flakiness
+   - JSON, Markdown, HTML report formats
+   - Flakiness detection (SQLite history)
+   - Test run retention policies
+
+6. **SPEC_project.md** - Integration
+   - Expo vs bare CLI workflows
+   - TestID conventions
+   - GitHub Actions template
+   - Ralph/GasTown orchestration
+
+### What exists vs what's needed:
+
+| Component | Spec Location | Status |
+|-----------|-------------|--------|
+| CLI router | SPEC.md | Not implemented |
+| Spec parser | SPEC_generation.md | Not implemented |
+| LLM generator | SPEC_generation.md | Not implemented |
+| Jest config | SPEC_tiers.md | Not implemented |
+| Tier 1 runner | SPEC_tiers.md | Not implemented |
+| Tier 2 runner | SPEC_tiers.md | Not implemented |
+| Tier 3 runner | SPEC_tiers.md | Not implemented |
+| Detox config | SPEC_tiers.md | Not implemented |
+| Device discovery | SPEC_device.md | Not implemented |
+| Device registry | SPEC_device.md | Not implemented |
+| Device drivers | SPEC_device.md | Not implemented |
+| Reporting layer | SPEC_reporting.md | Not implemented |
+| Flakiness detection | SPEC_reporting.md | Not implemented |
+
+---
+
 ## Implementation Order Rationale
 
 1. **Phase 1 first** because the core CLI and generation logic is the foundation - without parsing specs and generating tests, nothing else matters.
@@ -98,3 +156,16 @@
               ▼
          6.1 ─> 6.2 ─> 6.3 ─> 6.4
 ```
+
+---
+
+## Initial Setup Tasks (First Session)
+
+To start implementing this project:
+
+1. Initialize package.json with dependencies
+2. Set up TypeScript configuration
+3. Create basic CLI entry point
+4. Implement spec parser (Phase 1.3)
+
+This provides a working foundation for subsequent phases.
