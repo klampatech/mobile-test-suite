@@ -8,7 +8,7 @@
   - 1.3 Spec parser (src/parser/) to extract requirements from markdown specs
   - 1.4 LLM test generator (src/generator/) with API calls to Anthropic/OpenAI
 
-- **Phase 2: Test Execution Engine** - Partially implemented
+- **Phase 2: Test Execution Engine** - Fully implemented
   - 2.1 Jest configuration (jest.config.js template created in init)
   - 2.2 Test mocks (tests/__mocks__/ created in init)
   - 2.3 Tier 1 test runner (src/runners/tier1.js)
@@ -67,6 +67,12 @@
 - better-sqlite3 removed due to native compilation issues on Node 25
 - Flakiness detection simplified (no SQLite persistence)
 - Some device operations require additional system tools (ideviceinstaller, adb)
+
+### Recent fixes (v0.1.4):
+
+- Fixed ora ESM import issue in all CLI commands (required .default for ESM interop)
+- Fixed lint script to use .js extension instead of .ts
+- Added project unit tests for spec-parser, config-loader, and test-generator modules
 
 ### Usage:
 
