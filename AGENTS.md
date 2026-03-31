@@ -49,6 +49,14 @@ export LLM_PROVIDER="anthropic"          # Optional, default: anthropic
 export LLM_MODEL="claude-sonnet-4-20250514"  # Optional
 ```
 
+### Flakiness Detection
+
+Test results are automatically recorded to `~/.mobile-test-suite/flakiness.json` for tracking flaky tests. Use the `--retry` flag to handle flaky tests:
+
+```bash
+mobile-test-suite test --tier=1 --retry=3
+```
+
 ### Tier Execution Order
 
 Tier 1 (Jest, ~10-30s) → Tier 2 (RNTL, ~30-60s) → Tier 3 (Detox, ~2-5min)

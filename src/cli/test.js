@@ -11,6 +11,7 @@ const { runTier2 } = require('../runners/tier2');
 const { runTier3 } = require('../runners/tier3');
 const { loadConfig } = require('../config/loader');
 const { sendNotifications } = require('../services/notification-service');
+const { recordTestRun, exportFlakinessData, initFlakinessDb } = require('../services/flakiness-detector');
 
 const testCmd = new Command('test')
   .description('Run tests (all tiers or specific)')
@@ -83,10 +84,41 @@ const testCmd = new Command('test')
 
       results.duration = Date.now() - startTime;
 
+      // Record test runs for flakiness detection
+      try {
+        initFlakinessDb();
+        Object.entries(results.tiers).forEach(([tier, result]) => {
+          if (result.tests) {
+            recordTestRun({
+              runId,
+              timestamp: results.timestamp,
+              tier: parseInt(tier),
+              total: result.total || 0,
+              passed: result.passed || 0,
+              failed: result.failed || 0,
+              tests: result.tests,
+            });
+          }
+        });
+      } catch (flakinessError) {
+        console.warn(chalk.yellow(`Flakiness tracking error: ${flakinessError.message}`));
+      }
+
+      // Get flakiness data for summary
+      let flakyData = { detected: 0 };
+      try {
+        flakyData = exportFlakinessData();
+      } catch (e) {
+        // Flakiness tracking is optional
+      }
+
       console.log(chalk.bold('\n=== Test Results ==='));
       console.log(`Run ID: ${runId}`);
       console.log(`Duration: ${(results.duration / 1000).toFixed(2)}s`);
       console.log(`Status: ${results.overall === 'passed' ? chalk.green('PASSED') : chalk.red('FAILED')}`);
+      if (flakyData.detected > 0) {
+        console.log(chalk.yellow(`Flaky tests detected: ${flakyData.detected}`));
+      }
 
       Object.entries(results.tiers).forEach(([tier, result]) => {
         const status = result.failed === 0 ? chalk.green('PASS') : chalk.red('FAIL');
@@ -97,6 +129,7 @@ const testCmd = new Command('test')
       const summary = {
         runId,
         ...results,
+        flaky: flakyData,
         overall: {
           status: results.overall,
           passed: Object.values(results.tiers).reduce((sum, r) => sum + (r.passed || 0), 0),

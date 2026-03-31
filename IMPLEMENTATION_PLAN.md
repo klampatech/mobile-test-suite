@@ -47,7 +47,7 @@
 - [x] **6.2** Add build caching for Tier 3 (hash-based rebuild detection) (implemented in tier3.js)
 - [x] **6.3** Create GitHub Actions workflow template
 - [x] **6.4** Implement notification hooks (Slack, email) on failure - implemented in src/services/notification-service.js
-- [ ] **4.2** Flakiness detection (SQLite history) - deferred, native dependency issues
+- [x] **4.2** Flakiness detection (JSON history) - implemented in src/services/flakiness-detector.js
 
 ---
 
@@ -68,11 +68,18 @@
 - Flakiness detection simplified (no SQLite persistence)
 - Some device operations require additional system tools (ideviceinstaller, adb)
 
-### Recent fixes (v0.1.4):
+### Recent fixes (v0.1.6):
+
+- Added flakiness detection using JSON-based storage (src/services/flakiness-detector.js) - avoids native SQLite dependency issues
+- Added test command integration to record results for flakiness analysis
+- Added flaky test info to notification messages on failure
+
+### Recent fixes (v0.1.5):
 
 - Fixed ora ESM import issue in all CLI commands (required .default for ESM interop)
 - Fixed lint script to use .js extension instead of .ts
 - Added project unit tests for spec-parser, config-loader, and test-generator modules
+- Added prompts/generation_system.md required for LLM test generation
 
 ### Usage:
 
