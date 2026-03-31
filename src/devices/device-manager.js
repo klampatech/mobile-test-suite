@@ -486,6 +486,93 @@ async function discoverDevices(platform = 'all') {
   return discovered;
 }
 
+let healthWatchInterval = null;
+
+async function startHealthWatch(intervalMs = 60000) {
+  if (healthWatchInterval) {
+    throw new Error('Health watch is already running');
+  }
+
+  const runHealthCheck = async () => {
+    const registry = loadRegistry();
+    const devices = Object.values(registry.devices);
+
+    if (devices.length === 0) {
+      console.log(`${new Date().toISOString()} No devices to monitor`);
+      return;
+    }
+
+    console.log(`${new Date().toISOString()} Checking health of ${devices.length} device(s)...`);
+
+    for (const device of devices) {
+      try {
+        const health = await (device.platform === 'ios' ? getIosHealth(device.udid) : getAndroidHealth(device.udid));
+        const wasHealthy = device.status !== DeviceState.ERROR;
+
+        const issues = [];
+        if (health.battery < 20) issues.push(`Low battery: ${health.battery}%`);
+        if (health.storageFree < 500 * 1024 * 1024) issues.push(`Low storage: ${(health.storageFree / 1024 / 1024).toFixed(1)}MB free`);
+        if (!health.screenOn) issues.push('Screen is off');
+        if (!health.networkConnected) issues.push('Network disconnected');
+
+        const isHealthy = issues.length === 0;
+
+        // State transitions
+        if (!isHealthy && wasHealthy) {
+          console.log(`[${device.id}] Marking as ERROR (health check failed: ${issues.join(', ')})`);
+          device.status = DeviceState.ERROR;
+        } else if (isHealthy && device.status === DeviceState.ERROR) {
+          console.log(`[${device.id}] Marking as AVAILABLE (recovered)`);
+          device.status = DeviceState.AVAILABLE;
+        }
+
+        // Check for disconnect (not seen in 5 minutes)
+        const lastSeen = new Date(device.lastSeen);
+        const now = new Date();
+        const minutesSinceLastSeen = (now - lastSeen) / 1000 / 60;
+
+        if (minutesSinceLastSeen > 5 && device.status !== DeviceState.UNKNOWN) {
+          console.log(`[${device.id}] Marking as UNKNOWN (disconnected for ${minutesSinceLastSeen.toFixed(1)} min)`);
+          device.status = DeviceState.UNKNOWN;
+        }
+      } catch (error) {
+        if (device.status !== DeviceState.ERROR) {
+          console.log(`[${device.id}] Marking as ERROR (health check error: ${error.message})`);
+          device.status = DeviceState.ERROR;
+        }
+      }
+    }
+
+    saveRegistry(registry);
+  };
+
+  // Run immediately on start
+  await runHealthCheck();
+
+  // Then run at interval
+  healthWatchInterval = setInterval(runHealthCheck, intervalMs);
+
+  // Handle graceful shutdown
+  const shutdown = () => {
+    console.log('\nShutting down health watch...');
+    if (healthWatchInterval) {
+      clearInterval(healthWatchInterval);
+      healthWatchInterval = null;
+    }
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+function stopHealthWatch() {
+  if (healthWatchInterval) {
+    clearInterval(healthWatchInterval);
+    healthWatchInterval = null;
+  }
+}
+
 module.exports = {
   DeviceState,
   listDevices,
@@ -496,4 +583,6 @@ module.exports = {
   allocateDevice,
   releaseDevice,
   discoverDevices,
+  startHealthWatch,
+  stopHealthWatch,
 };

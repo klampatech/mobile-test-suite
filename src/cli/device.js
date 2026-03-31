@@ -193,6 +193,19 @@ const deviceCmd = new Command('device')
           process.exit(2);
         }
       })
+  )
+  .addCommand(
+    new Command('watch')
+      .description('Watch device health continuously')
+      .option('-i, --interval <seconds>', 'Health check interval in seconds', '60')
+      .action(async (options) => {
+        const interval = parseInt(options.interval) * 1000;
+        console.log(chalk.cyan(`Starting device health monitoring (interval: ${options.interval}s)...`));
+        console.log(chalk.gray('Press Ctrl+C to stop\n'));
+
+        const { startHealthWatch } = require('../devices/device-manager');
+        await startHealthWatch(interval);
+      })
   );
 
 module.exports = { deviceCmd };

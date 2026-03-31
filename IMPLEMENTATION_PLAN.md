@@ -60,6 +60,11 @@
 - [x] **7.6** Generate JUnit XML in run directory (implemented in test.js)
 - [x] **7.7** Generate flaky-tests.json artifact (implemented in test.js)
 
+### Phase 8: Health Monitoring
+
+- [x] **8.1** Device health watch daemon - implemented in src/devices/device-manager.js (startHealthWatch function)
+- [x] **8.2** Continuous health monitoring with state transitions (error → available, unknown on disconnect)
+
 ---
 
 ## Implementation Notes
