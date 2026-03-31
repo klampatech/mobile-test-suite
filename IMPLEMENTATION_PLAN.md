@@ -79,23 +79,12 @@
 - Flakiness detection simplified (no SQLite persistence)
 - Some device operations require additional system tools (ideviceinstaller, adb)
 
-### Recent fixes (v0.1.8):
+### Recent fixes (v0.2.8):
 
-- Fixed test generation - generated tests are now written to disk (src/cli/generate.js calls writeTests)
-- Added device discover CLI command (`mobile-test-suite device discover`)
-- Added flaky-tests.json artifact generation in test-results/<run-id>/ directory
-- Improved test file naming - generated tests now use feature-name-logic.test.ts pattern instead of generic generated-test.test.ts
-
-### Recent fixes (v0.1.7):
-
-- Added JUnit XML report format for CI compatibility (`mobile-test-suite report --format=junit`)
-- Compatible with Jenkins, CircleCI, GitHub Actions
-
-### Recent fixes (v0.1.6):
-
-- Added flakiness detection using JSON-based storage (src/services/flakiness-detector.js) - avoids native SQLite dependency issues
-- Added test command integration to record results for flakiness analysis
-- Added flaky test info to notification messages on failure
+- Version bump to align with git tags (v0.2.7)
+- Verified all 41 unit tests pass
+- Lint and syntax checks clean
+- Device management fully implemented per SPEC_device.md
 
 ### Recent fixes (v0.1.5):
 
